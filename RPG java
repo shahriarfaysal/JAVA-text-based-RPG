@@ -1,0 +1,190 @@
+import java.util.Scanner;
+import java.util.Random;
+
+// Class representing the player character
+class Player {
+    String name;
+    int health;
+    int maxHealth;
+    int attackPower;
+    int level;
+    int experience;
+    int nextLevelExp;
+
+    // Constructor to initialize the player with a name and default stats
+    public Player(String name) {
+        this.name = name;
+        this.maxHealth = 100;
+        this.health = this.maxHealth;
+        this.attackPower = 10;
+        this.level = 1;
+        this.experience = 0;
+        this.nextLevelExp = 100;
+    }
+
+    // Method to attack an enemy
+    public void attack(Enemy enemy) {
+        Random rand = new Random();
+        int damage = rand.nextInt(attackPower) + 1;
+        enemy.takeDamage(damage);
+        System.out.println("You attacked the " + enemy.name + " for " + damage + " damage.");
+    }
+
+    // Method to take damage from an enemy
+    public void takeDamage(int damage) {
+        this.health -= damage;
+        if (this.health < 0) {
+            this.health = 0;
+        }
+    }
+
+    // Method to gain experience and potentially level up
+    public void gainExperience(int exp) {
+        this.experience += exp;
+        System.out.println("You gained " + exp + " experience points.");
+        if (this.experience >= this.nextLevelExp) {
+            levelUp();
+        }
+    }
+
+    // Method to level up the player
+    private void levelUp() {
+        this.level++;
+        this.experience = this.experience - this.nextLevelExp;
+        this.nextLevelExp = this.nextLevelExp * 2;
+        this.maxHealth += 20;
+        this.health = this.maxHealth;
+        this.attackPower += 5;
+        System.out.println("Congratulations! You leveled up to level " + this.level + "!");
+    }
+
+    // Method to check if the player is still alive
+    public boolean isAlive() {
+        return this.health > 0;
+    }
+
+    // Method to display the player's stats
+    public void showStats() {
+        System.out.println("Player Stats:");
+        System.out.println("Name: " + this.name);
+        System.out.println("Level: " + this.level);
+        System.out.println("Health: " + this.health + "/" + this.maxHealth);
+        System.out.println("Attack Power: " + this.attackPower);
+        System.out.println("Experience: " + this.experience + "/" + this.nextLevelExp);
+    }
+}
+
+// Class representing an enemy character
+class Enemy {
+    String name;
+    int health;
+    int attackPower;
+
+    // Constructor to initialize the enemy with a name, health, and attack power
+    public Enemy(String name, int health, int attackPower) {
+        this.name = name;
+        this.health = health;
+        this.attackPower = attackPower;
+    }
+
+    // Method to take damage from the player
+    public void takeDamage(int damage) {
+        this.health -= damage;
+        if (this.health < 0) {
+            this.health = 0;
+        }
+    }
+
+    // Method to attack the player
+    public void attack(Player player) {
+        Random rand = new Random();
+        int damage = rand.nextInt(attackPower) + 1;
+        player.takeDamage(damage);
+        System.out.println("The " + this.name + " attacked you for " + damage + " damage.");
+    }
+
+    // Method to check if the enemy is still alive
+    public boolean isAlive() {
+        return this.health > 0;
+    }
+
+    // Method to display the enemy's stats
+    public void showStats() {
+        System.out.println("Enemy Stats:");
+        System.out.println("Name: " + this.name);
+        System.out.println("Health: " + this.health);
+        System.out.println("Attack Power: " + this.attackPower);
+    }
+}
+
+// Main class to run the RPG game
+public class RPGGame {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        // Get the player's name and create the player character
+        System.out.print("Enter your character's name: ");
+        String playerName = scanner.nextLine();
+        Player player = new Player(playerName);
+
+        System.out.println("Welcome, " + player.name + "! Your adventure begins.");
+
+        boolean playing = true;
+
+        // Main game loop
+        while (playing) {
+            System.out.println("\nWhat would you like to do?");
+            System.out.println("1. Look for an enemy to fight");
+            System.out.println("2. View your stats");
+            System.out.println("3. Exit game");
+            int choice = scanner.nextInt();
+
+            switch (choice) {
+                case 1:
+                    // Create a new enemy and start combat
+                    Enemy enemy = new Enemy("Goblin", 30, 5);
+                    System.out.println("You encountered a " + enemy.name + "!");
+                    while (enemy.isAlive() && player.isAlive()) {
+                        System.out.println("\n1. Attack");
+                        System.out.println("2. Run");
+                        int combatChoice = scanner.nextInt();
+                        if (combatChoice == 1) {
+                            // Player attacks the enemy
+                            player.attack(enemy);
+                            if (enemy.isAlive()) {
+                                // Enemy attacks back if still alive
+                                enemy.attack(player);
+                            } else {
+                                System.out.println("You defeated the " + enemy.name + "!");
+                                player.gainExperience(50);
+                            }
+                        } else if (combatChoice == 2) {
+                            // Player runs away
+                            System.out.println("You ran away from the " + enemy.name + "!");
+                            break;
+                        }
+                        // Check if the player is still alive
+                        if (!player.isAlive()) {
+                            System.out.println("You have been defeated. Game over.");
+                            playing = false;
+                            break;
+                        }
+                    }
+                    break;
+                case 2:
+                    // Show player stats
+                    player.showStats();
+                    break;
+                case 3:
+                    // Exit the game
+                    System.out.println("Thanks for playing!");
+                    playing = false;
+                    break;
+                default:
+                    // Handle invalid input
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+        scanner.close();
+    }
+}
